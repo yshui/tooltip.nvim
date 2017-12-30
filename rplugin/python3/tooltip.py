@@ -15,32 +15,41 @@ class Main(object):
         self.vim = vim
         self.d = display.Display()
         Gdk.threads_init()
+        self.w = Gtk.Window(type = Gtk.WindowType.POPUP)
+        self.w.set_type_hint(Gdk.WindowTypeHint.TOOLTIP)
+        self.w.connect("draw", self.draw)
         self.thrd = threading.Thread(target=Gtk.main, name="Gtk", daemon=True)
         self.thrd.start()
+
+    def draw(self, w, cr):
+        PangoCairo.show_layout(cr, self.layout)
+        return True
 
     @neovim.function('ShowTooltip')
     def show_tooltip(self, args):
         # args: line, col, text markup
         Gdk.threads_enter()
-        w = Gtk.Window(type = Gtk.WindowType.POPUP)
-        w.set_type_hint(Gdk.WindowTypeHint.TOOLTIP)
-
         b, attr, text, accel = Pango.parse_markup(args[2], len(args[2]), "\0")
         if not b:
             return
 
-        layout = w.create_pango_layout(text)
-        layout.set_attributes(attr)
-        layout.set_width(-1)
-        _, e = layout.get_pixel_extents()
+        self.layout = self.w.create_pango_layout(text)
+        self.layout.set_attributes(attr)
+        self.layout.set_width(-1)
+        _, e = self.layout.get_pixel_extents()
         wid = int(os.environ['WINDOWID'])
         tline = float(self.vim.eval("&lines"))
         tcol = float(self.vim.eval("&columns"))
         g = request.GetGeometry(display=self.d, drawable=wid)
         x = int(g.x+g.width*args[1]/tcol)
         y = int(g.y+g.height*args[0]/tline)
-        w.move(x, y)
-        w.resize(e.width, e.height)
-        w.show()
+        self.w.move(x, y)
+        self.w.resize(e.width, e.height)
+        self.w.show()
         Gdk.threads_leave()
-        self.vim.command("echom 'returning'")
+
+    @neovim.function('HideTooltip')
+    def hide_tooltip(self, args):
+        Gdk.threads_enter()
+        self.w.hide()
+        Gdk.threads_leave()

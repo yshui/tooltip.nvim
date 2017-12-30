@@ -25,6 +25,7 @@ class Main(object):
         self.thrd.start()
 
     def draw(self, w, cr):
+        cr.set_source_rgb(1,1,1)
         cr.move_to(self.bw, self.bw)
         PangoCairo.show_layout(cr, self.layout)
         return True

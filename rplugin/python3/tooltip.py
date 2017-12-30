@@ -38,8 +38,6 @@ class Main(object):
 
         self.bw = int(self.vim.vars.get("tooltip_border_width", 0))
 
-        Gdk.threads_enter()
-
         # Create pango layout
         try:
             b, attr, text, accel = Pango.parse_markup(args[2], len(args[2]), "\0")
@@ -50,6 +48,7 @@ class Main(object):
             return
         _, e = self.layout.get_pixel_extents()
 
+        Gdk.threads_enter()
         # Get the geometry of the terminal window
         wid = int(os.environ['WINDOWID'])
         g = request.GetGeometry(display=self.d, drawable=wid)

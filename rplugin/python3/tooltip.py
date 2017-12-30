@@ -1,6 +1,8 @@
 import neovim
 import gi
+import cairo
 gi.require_version("Gtk", "3.0")
+from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Pango
@@ -8,6 +10,7 @@ from gi.repository import PangoCairo
 from Xlib.protocol import request, display
 import threading
 import os
+import subprocess
 
 @neovim.plugin
 class Main(object):
@@ -22,29 +25,57 @@ class Main(object):
         self.thrd.start()
 
     def draw(self, w, cr):
+        cr.move_to(self.bw, self.bw)
         PangoCairo.show_layout(cr, self.layout)
         return True
 
-    @neovim.function('ShowTooltip')
+    @neovim.function('ShowTooltip', sync=True)
     def show_tooltip(self, args):
         # args: line, col, text markup
-        Gdk.threads_enter()
-        b, attr, text, accel = Pango.parse_markup(args[2], len(args[2]), "\0")
-        if not b:
+        if 'WINDOWID' not in os.environ:
             return
 
-        self.layout = self.w.create_pango_layout(text)
-        self.layout.set_attributes(attr)
-        self.layout.set_width(-1)
+        self.bw = int(self.vim.vars.get("tooltip_border_width", 0))
+
+        Gdk.threads_enter()
+
+        # Create pango layout
+        try:
+            b, attr, text, accel = Pango.parse_markup(args[2], len(args[2]), "\0")
+            self.layout = self.w.create_pango_layout(text)
+            self.layout.set_attributes(attr)
+            self.layout.set_width(-1)
+        except GLib.GError:
+            return
         _, e = self.layout.get_pixel_extents()
+
+        # Get the geometry of the terminal window
         wid = int(os.environ['WINDOWID'])
+        g = request.GetGeometry(display=self.d, drawable=wid)
+
+        # Try to get the offset of current tmux pane
+        offx = 0.0
+        offy = 0.0
+        if 'TMUX' in os.environ:
+            r = subprocess.run(["tmux", "display", "-p",
+                "#{pane_left},#{pane_top},#{window_width},#{window_height}"],
+                stdout=subprocess.PIPE)
+            if r.returncode == 0:
+                parts = list(map(float, r.stdout.split(b',')))
+                offx = parts[0]/parts[2]
+                offy = parts[1]/parts[3]
+
+        # Calculate the offset of the tooltip
         tline = float(self.vim.eval("&lines"))
         tcol = float(self.vim.eval("&columns"))
-        g = request.GetGeometry(display=self.d, drawable=wid)
-        x = int(g.x+g.width*args[1]/tcol)
-        y = int(g.y+g.height*args[0]/tline)
+        offx = offx + args[1]/tcol
+        offy = offy + args[0]/tline
+        x = int(g.x+g.width*offx)
+        y = int(g.y+g.height*offy)
         self.w.move(x, y)
-        self.w.resize(e.width, e.height)
+
+        # Set the tooltip size to text size
+        self.w.resize(e.width+self.bw*2, e.height+self.bw*2)
         self.w.show()
         Gdk.threads_leave()
 

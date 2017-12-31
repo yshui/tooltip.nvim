@@ -25,6 +25,8 @@ class Main(object):
         self.thrd.start()
 
     def draw(self, w, cr):
+        cr.set_source_rgb(self.bg.red, self.bg.green, self.bg.blue)
+        cr.paint()
         cr.set_source_rgb(1,1,1)
         cr.move_to(self.bw, self.bw)
         PangoCairo.show_layout(cr, self.layout)
@@ -37,6 +39,8 @@ class Main(object):
             return
 
         self.bw = int(self.vim.vars.get("tooltip_border_width", 0))
+        self.bg = Gdk.RGBA()
+        self.bg.parse(self.vim.vars.get("tooltip_background", "black"))
 
         Gdk.threads_enter()
         # Create pango layout
@@ -85,3 +89,7 @@ class Main(object):
         Gdk.threads_enter()
         self.w.hide()
         Gdk.threads_leave()
+
+    @neovim.autocmd('FocusLost', pattern='*')
+    def on_focuslost(self):
+        hide_tooltip()

@@ -42,7 +42,7 @@ class Main(object):
         self.bg = Gdk.RGBA()
         self.bg.parse(self.vim.vars.get("tooltip_background", "black"))
         self.fg = Gdk.RGBA()
-        self.bg.parse(self.vim.vars.get("tooltip_foreground", "white"))
+        self.fg.parse(self.vim.vars.get("tooltip_foreground", "white"))
 
         Gdk.threads_enter()
         # Create pango layout
@@ -94,4 +94,4 @@ class Main(object):
 
     @neovim.autocmd('FocusLost', pattern='*')
     def on_focuslost(self):
-        hide_tooltip()
+        self.hide_tooltip([])

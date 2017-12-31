@@ -27,7 +27,7 @@ class Main(object):
     def draw(self, w, cr):
         cr.set_source_rgb(self.bg.red, self.bg.green, self.bg.blue)
         cr.paint()
-        cr.set_source_rgb(1,1,1)
+        cr.set_source_rgb(self.fg.red, self.fg.green, self.fg.blue)
         cr.move_to(self.bw, self.bw)
         PangoCairo.show_layout(cr, self.layout)
         return True
@@ -41,6 +41,8 @@ class Main(object):
         self.bw = int(self.vim.vars.get("tooltip_border_width", 0))
         self.bg = Gdk.RGBA()
         self.bg.parse(self.vim.vars.get("tooltip_background", "black"))
+        self.fg = Gdk.RGBA()
+        self.bg.parse(self.vim.vars.get("tooltip_foreground", "white"))
 
         Gdk.threads_enter()
         # Create pango layout

@@ -42,8 +42,11 @@ call HideTooltip()
 
 # Configuration
 
-You can change the border width of the tooltip:
-
 ```vim
+" Border width
 let g:tooltip_border_width = 2
+" Background color"
+let g:tooltip_background = "black"
+" Text color
+let g:tooltip_foreground = "white"
 ```

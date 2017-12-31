@@ -12,6 +12,19 @@ This plugin will also work inside tmux.
 
 **Notice:** This plugin is mostly a Proof-of-Concept
 
+# Requirements
+
+You need those python modules:
+
+* PyGObject
+* cairo
+* python-xlib
+
+Other dependencies:
+
+* Gtk
+* Pango
+
 # Usage
 
 To show the tooltip:

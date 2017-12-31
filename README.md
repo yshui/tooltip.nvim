@@ -30,7 +30,8 @@ Other dependencies:
 To show the tooltip:
 
 ```vim
-"text can contain pango markup, see https://developer.gnome.org/pango/stable/PangoMarkupFormat.html
+" text can contain pango markup, see https://developer.gnome.org/pango/stable/PangoMarkupFormat.html
+" position of the cursor can be retrieved with screenrow() and screencol()
 call ShowTooltip(<row>, <column>, <text>)
 ```
 

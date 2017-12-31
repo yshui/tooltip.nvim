@@ -59,6 +59,7 @@ class Main(object):
         # Get the geometry of the terminal window
         wid = int(os.environ['WINDOWID'])
         g = request.GetGeometry(display=self.d, drawable=wid)
+        coord = request.TranslateCoords(display=self.d, src_wid=wid, dst_wid=g.root, src_x=0, src_y=0)
 
         # Try to get the offset of current tmux pane
         offx = 0.0
@@ -77,8 +78,8 @@ class Main(object):
         tcol = float(self.vim.eval("&columns"))
         offx = offx + args[1]/tcol
         offy = offy + args[0]/tline
-        x = int(g.x+g.width*offx)
-        y = int(g.y+g.height*offy)
+        x = int(coord.x+g.width*offx)
+        y = int(coord.y+g.height*offy)
         self.w.move(x, y)
 
         # Set the tooltip size to text size

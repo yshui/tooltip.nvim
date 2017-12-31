@@ -2,6 +2,10 @@
 
 This neovim plugin allows you to display a tooltip positioned at given row and column.
 
+It can be used in conjunction with tools like [LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim) to show useful information about the text around the cursor.
+
+![Example](screenshot.png)
+
 Your terminal emulator needs to set the `WINDOWID` environment variable. Most of the modern terminals do this.
 
 This plugin will also work inside tmux.

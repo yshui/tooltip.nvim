@@ -62,22 +62,29 @@ class Main(object):
         coord = request.TranslateCoords(display=self.d, src_wid=wid, dst_wid=g.root, src_x=0, src_y=0)
 
         # Try to get the offset of current tmux pane
-        offx = 0.0
-        offy = 0.0
+        offx = args[1]
+        offy = args[0]
+        tline = None
+        tcol = None
         if 'TMUX' in os.environ:
             r = subprocess.run(["tmux", "display", "-p",
                 "#{pane_left},#{pane_top},#{window_width},#{window_height}"],
                 stdout=subprocess.PIPE)
             if r.returncode == 0:
                 parts = list(map(float, r.stdout.split(b',')))
-                offx = parts[0]/parts[2]
-                offy = parts[1]/parts[3]
+                offx = offx + parts[0]
+                offy = offy + parts[1]
+                tcol = parts[2]
+                tline = parts[3]
+
+        # If we didn't get the window size from tmux, try vim
+        if tcol is None or tline is None:
+            tline = float(self.vim.eval("&lines"))
+            tcol = float(self.vim.eval("&columns"))
 
         # Calculate the offset of the tooltip
-        tline = float(self.vim.eval("&lines"))
-        tcol = float(self.vim.eval("&columns"))
-        offx = offx + args[1]/tcol
-        offy = offy + args[0]/tline
+        offx = offx/tcol
+        offy = offy/tline
         x = int(coord.x+g.width*offx)
         y = int(coord.y+g.height*offy)
         self.w.move(x, y)
